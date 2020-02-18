@@ -1,8 +1,6 @@
-
-
 #' @title rehh liftover for vcfR
 #'
-#' @description Converts a vcfR object to a "transposed" haplotype object for use in other packages (i.e. \{rehh})
+#' @description Converts a vcfR object to a "transposed" haplotype object for use in other packages (i.e. \code{rehh})
 #'
 #'
 

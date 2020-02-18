@@ -7,5 +7,5 @@
 vcfR2removesingletons_gt(vcfRobj)
 }
 \description{
-Read vcfR object and remove all loci that have are singletons
+Read vcfR object and remove all loci that are singletons
 }

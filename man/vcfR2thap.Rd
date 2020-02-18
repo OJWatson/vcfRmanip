@@ -7,5 +7,5 @@
 vcfR2thap(vcfRobj)
 }
 \description{
-rehh liftover for vcfR
+Converts a vcfR object to a "transposed" haplotype object for use in other packages (i.e. \code{rehh})
 }

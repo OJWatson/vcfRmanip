@@ -301,7 +301,7 @@ vcfR2segsites_gt <- function(vcfRobj){
 
 #' @title vcfR2removesingletons_gt
 #'
-#' @description Read vcfR object and remove all loci that have are singletons
+#' @description Read vcfR object and remove all loci that are singletons
 #' @export
 #'
 
@@ -337,7 +337,7 @@ vcfR2removesingletons_gt <- function(vcfRobj){
 
     x <- factor(x, levels = c(0,1,2))
     return(
-      all(as.data.frame(table(x))$Freq %in% c(0, 1, (length(x)-1))) # singleton must have 1, 0, and then rest #
+      all(as.data.frame(table(x))$Freq %in% c(0, 1, (sum(!is.na(x))), sum(!is.na(x))-1)) # singleton must have 1, 0, and then either all the rest  or rest - 1#
     )
     }
 
@@ -347,7 +347,7 @@ vcfR2removesingletons_gt <- function(vcfRobj){
 
   fix <- as.matrix(vcfR::getFIX(vcfRobj, getINFO = T)[!singleton,])
   gt <- as.matrix(vcfRobj@gt)
-  meta <- append(vcfRobj@meta, paste("##Additional Filters for segregating sites, such that GT call must be segregating within samples"))
+  meta <- append(vcfRobj@meta, paste("##Additional Filters for removing singleton loci, i.e. "))
 
   # Setting class based off of vcfR documentation https://github.com/knausb/vcfR/blob/master/R/AllClass.R
   newvcfR <- new("vcfR", meta = meta, fix = fix, gt = gt)
