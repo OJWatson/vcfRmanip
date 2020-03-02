@@ -19,15 +19,22 @@ corMat <- function(m) {
   n <- nrow(m) # number of loci
   c <- matrix(NA,n,n)
   diag(c) <- 1
+
+  # precompute these
+  xi_min_mui <- vector("list", n)
+  sum_squared_xi_min_mui <- vector("list", n)
   for (i in 1:n) {
+
     x1 <- unlist(m[i,])
     mu1 <- mean(x1,na.rm=TRUE)
-    x1_min_mu1 <- x1-mu1
-    sum_squared_x1_min_mu1 <- sum((x1-mu1)^2,na.rm=TRUE)
+    xi_min_mui[[i]] <- x1-mu1
+    sum_squared_xi_min_mui[[i]] <- sum((x1-mu1)^2,na.rm=TRUE)
+
+  }
+
+  for (i in 1:n) {
     for (j in (i+1):n) {
-      x2 <- unlist(m[j,])
-      mu2 <- mean(x2,na.rm=TRUE)
-      c[i,j] <- c[j,i] <- sum(x1_min_mu1*(x2-mu2),na.rm=TRUE)/sqrt( sum_squared_x1_min_mu1*sum((x2-mu2)^2,na.rm=TRUE) + tol)
+      c[i,j] <- c[j,i] <- sum(xi_min_mui[[i]]*xi_min_mui[[j]],na.rm=TRUE)/sqrt( sum_squared_x1_min_mu1*sum_squared_xi_min_mui[[j]] + tol)
     }
   }
   return(c)
