@@ -120,19 +120,27 @@ genautocorr <- function(vcffile = NULL, vcfR = NULL, biallelicsnps=TRUE){
 #' @title vcfR2LDfiltered
 #' @description Filtering an object of class \code{vcfR} for linkage disequilibrium via genetic autocorrelation.
 #' @param vcffile A variant call file (vcf) path. This VCF will be converted to an object of class \code{vcfR}.
+#' @param threshDist Genetic distance to filter at.
+#' @param threshR2 Genetic autocorrelation to filter at
 #'
 #'
 #' @export
 #'
 
-vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL, genautocorrresult=NULL, threshDist=1e3, biallelicsnps=TRUE){
+vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
+                            genautocorrresult=NULL,
+                            threshDist=NULL, threshR2 = NULL, biallelicsnps=TRUE){
 
 
   # -----------------------------------------------------
   # Read and check input
   #------------------------------------------------------
-  if(is.null(genautocorrresult)){
-    stop("Must specify a linkage disequilibrium threshold (see help and tutorial).")
+  if(is.null(threshDist) && is.null(threshR2)){
+    stop("Must specify one of linkage disequilibrium threshold (see help and tutorial).")
+  }
+  if(!is.null(threshDist) && !is.null(threshR2)){
+    message("Both threshDist and threshR2 are specified. threshDist will be used")
+    threshR2 <- NULL
   }
   if(is.null(genautocorrresult)){
     stop("Must specify a genetic autocorrelation results object using the genautocorr function")
@@ -162,7 +170,7 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL, genautocorrresult=NULL,
   # Filter based on distance
   #------------------------------------------------------
 
-  filter_autocorr <- function(vcflist, genautocorrresult){
+  filter_distance <- function(vcflist, genautocorrresult){
     gendist <- as.matrix(genautocorrresult$gendist)
     diag(gendist) <- Inf	# block self-comparison
     while (any(gendist<threshDist)) {
@@ -174,7 +182,30 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL, genautocorrresult=NULL,
     return(vcflist)
   }
 
-  updatedvcflist <- parallel::mcmapply(filter_autocorr, vcflist, genautocorrresult, SIMPLIFY = F)
+
+  # -----------------------------------------------------
+  # Filter based on autocorr
+  #------------------------------------------------------
+
+  filter_autocorr <- function(vcflist, genautocorrresult){
+    corMat <- as.matrix(genautocorrresult$corMat)
+    diag(corMat) <- Inf	# block self-comparison
+    while (any(corMat>threshR2)) {
+      w <- which(corMat>threshR2, arr.ind=TRUE)
+      vcflist <- vcflist[-w[1,1],]
+      corMat <- corMat[-w[1,1],-w[1,1]]
+
+    }
+    return(vcflist)
+  }
+
+  if(is.null(threshR2)) {
+    updatedvcflist <- parallel::mcmapply(filter_distance, vcflist, genautocorrresult, SIMPLIFY = F)
+    fm <- paste("##Filtered for genetic autocorrelation with a threshold distance of", threshDist)
+  } else {
+    updatedvcflist <- parallel::mcmapply(filter_autocorr, vcflist, genautocorrresult, SIMPLIFY = F)
+    fm <- paste("##Filtered for genetic autocorrelation with a maximum r2 of", threshR2)
+  }
   updatedvcfdf <- do.call(rbind, updatedvcflist)
 
   # -----------------------------------------------------
@@ -182,7 +213,7 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL, genautocorrresult=NULL,
   #------------------------------------------------------
   fix <- as.matrix(updatedvcfdf[,1:8])
   gt <- as.matrix(updatedvcfdf[,9:ncol(updatedvcfdf)])
-  meta <- append(vcf@meta, paste("##Filtered for genetic autocorrelation by polyIBD filter tools with a threshold distance of", threshDist))
+  meta <- append(vcf@meta, fm)
 
   # Setting class based off of vcfR documentation https://github.com/knausb/vcfR/blob/master/R/AllClass.R
   newvcfR <- new("vcfR", meta = meta, fix = fix, gt = gt)
