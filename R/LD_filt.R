@@ -32,7 +32,7 @@ corMat <- function(m) {
 
   }
 
-  for (i in 1:n) {
+  for (i in 1:(n-1)) {
     for (j in (i+1):n) {
 
       c[i,j] <- c[j,i] <- sum(xi_min_mui[[i]]*xi_min_mui[[j]],na.rm=TRUE)/sqrt( sum_squared_xi_min_mui[[i]]*sum_squared_xi_min_mui[[j]] + tol)
