@@ -10,16 +10,28 @@ vcfR2LDfiltered(
   genautocorrresult = NULL,
   threshDist = NULL,
   threshR2 = NULL,
-  biallelicsnps = TRUE
+  random = FALSE
 )
 }
 \arguments{
-\item{vcffile}{A variant call file (vcf) path. This VCF will be converted to an object of class \code{vcfR}.}
+\item{vcffile}{A variant call file (vcf) path. This VCF will be converted
+to an object of class \code{vcfR}.}
+
+\item{vcfR}{A variant call file objet (vcf) path.}
+
+\item{genautocorrresult}{Genetic autocorrelation object produced
+by \code{genautocorr}}
 
 \item{threshDist}{Genetic distance to filter at.}
 
 \item{threshR2}{Genetic autocorrelation to filter at}
+
+\item{random}{Are sites being filtered chosen at random from sites that need
+to be filtered. Default = FALSE}
+
+\item{bial}{}
 }
 \description{
-Filtering an object of class \code{vcfR} for linkage disequilibrium via genetic autocorrelation.
+Filtering an object of class \code{vcfR} for linkage
+  disequilibrium via genetic autocorrelation.
 }

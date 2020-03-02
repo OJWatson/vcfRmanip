@@ -118,10 +118,18 @@ genautocorr <- function(vcffile = NULL, vcfR = NULL, biallelicsnps=TRUE){
 
 
 #' @title vcfR2LDfiltered
-#' @description Filtering an object of class \code{vcfR} for linkage disequilibrium via genetic autocorrelation.
-#' @param vcffile A variant call file (vcf) path. This VCF will be converted to an object of class \code{vcfR}.
+#' @description Filtering an object of class \code{vcfR} for linkage
+#'   disequilibrium via genetic autocorrelation.
+#' @param vcffile A variant call file (vcf) path. This VCF will be converted
+#'   to an object of class \code{vcfR}.
+#' @param vcfR A variant call file objet (vcf) path.
+#' @param genautocorrresult Genetic autocorrelation object produced
+#'   by \code{genautocorr}
 #' @param threshDist Genetic distance to filter at.
 #' @param threshR2 Genetic autocorrelation to filter at
+#' @param random Are sites being filtered chosen at random from sites that need
+#'   to be filtered. Default = FALSE
+#' @param bial
 #'
 #'
 #' @export
@@ -129,7 +137,9 @@ genautocorr <- function(vcffile = NULL, vcfR = NULL, biallelicsnps=TRUE){
 
 vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
                             genautocorrresult=NULL,
-                            threshDist=NULL, threshR2 = NULL, biallelicsnps=TRUE){
+                            threshDist=NULL,
+                            threshR2 = NULL,
+                            random = FALSE){
 
 
   # -----------------------------------------------------
@@ -154,9 +164,6 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
   } else{
     vcf <- vcfR::read.vcfR(file=vcffile, verbose=T) # read vcf
   }
-  if(biallelicsnps == FALSE){
-    stop("This must be used with biallelic SNPs")
-  }
 
   vcf <-vcfR::extract.indels(vcf, return.indels = F) # subset to SNPs
   vcf <- vcf[vcfR::is.biallelic(vcf)] # subset to biallelic
@@ -175,8 +182,13 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
     diag(gendist) <- Inf	# block self-comparison
     while (any(gendist<threshDist)) {
       w <- which(gendist<threshDist, arr.ind=TRUE)
-      vcflist <- vcflist[-w[1,1],]
-      gendist <- gendist[-w[1,1],-w[1,1]]
+      if(random) {
+        pos <- sample(length(w),1,FALSE)
+      } else {
+        pos <- 1
+      }
+      vcflist <- vcflist[-w[pos, pos],]
+      gendist <- gendist[-w[pos, pos],-w[pos, pos]]
 
     }
     return(vcflist)
@@ -192,8 +204,13 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
     diag(corMat) <- Inf	# block self-comparison
     while (any(corMat>threshR2)) {
       w <- which(corMat>threshR2, arr.ind=TRUE)
-      vcflist <- vcflist[-w[1,1],]
-      corMat <- corMat[-w[1,1],-w[1,1]]
+      if(random) {
+        pos <- sample(length(w),1,FALSE)
+      } else {
+        pos <- 1
+      }
+      vcflist <- vcflist[-w[pos, pos],]
+      corMat <- corMat[-w[pos, pos],-w[pos, pos]]
 
     }
     return(vcflist)
