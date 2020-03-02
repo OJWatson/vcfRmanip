@@ -18,13 +18,16 @@ corMat <- function(m) {
   tol <- 1e-9 # tolerance for denominator if AF become the same
   n <- nrow(m) # number of loci
   c <- matrix(NA,n,n)
+  diag(c) <- 1
   for (i in 1:n) {
     x1 <- unlist(m[i,])
     mu1 <- mean(x1,na.rm=TRUE)
-    for (j in i:n) {
+    x1_min_mu1 <- x1-mu1
+    sum_squared_x1_min_mu1 <- sum((x1-mu1)^2,na.rm=TRUE)
+    for (j in (i+1):n) {
       x2 <- unlist(m[j,])
       mu2 <- mean(x2,na.rm=TRUE)
-      c[i,j] <- c[j,i] <- sum((x1-mu1)*(x2-mu2),na.rm=TRUE)/sqrt( sum((x1-mu1)^2,na.rm=TRUE)*sum((x2-mu2)^2,na.rm=TRUE) + tol)
+      c[i,j] <- c[j,i] <- sum(x1_min_mu1*(x2-mu2),na.rm=TRUE)/sqrt( sum_squared_x1_min_mu1*sum((x2-mu2)^2,na.rm=TRUE) + tol)
     }
   }
   return(c)
