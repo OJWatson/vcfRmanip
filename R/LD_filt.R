@@ -183,12 +183,13 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
     while (any(gendist<threshDist)) {
       w <- which(gendist<threshDist, arr.ind=TRUE)
       if(random) {
-        pos <- sample(length(w),1,FALSE)
+        pos <- sample(nrow(w), 1, FALSE)
+        pos <- w[pos, 1]
       } else {
-        pos <- 1
+        pos <- w[1, 1]
       }
-      vcflist <- vcflist[-w[pos, pos],]
-      gendist <- gendist[-w[pos, pos],-w[pos, pos]]
+      vcflist <- vcflist[-pos,]
+      gendist <- gendist[-pos,-pos]
 
     }
     return(vcflist)
@@ -201,16 +202,17 @@ vcfR2LDfiltered <- function(vcffile = NULL, vcfR = NULL,
 
   filter_autocorr <- function(vcflist, genautocorrresult){
     corMat <- as.matrix(genautocorrresult$corMat)
-    diag(corMat) <- Inf	# block self-comparison
+    diag(corMat) <- 0	# block self-comparison
     while (any(corMat>threshR2)) {
       w <- which(corMat>threshR2, arr.ind=TRUE)
       if(random) {
-        pos <- sample(length(w),1,FALSE)
+        pos <- sample(nrow(w), 1, FALSE)
+        pos <- w[pos, 1]
       } else {
-        pos <- 1
+        pos <- w[1, 1]
       }
-      vcflist <- vcflist[-w[pos, pos],]
-      corMat <- corMat[-w[pos, pos],-w[pos, pos]]
+      vcflist <- vcflist[-pos,]
+      corMat <- corMat[-pos,-pos]
 
     }
     return(vcflist)
