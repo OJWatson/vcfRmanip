@@ -8,12 +8,17 @@ vcfR2LDfiltered(
   vcffile = NULL,
   vcfR = NULL,
   genautocorrresult = NULL,
-  threshDist = 1000,
+  threshDist = NULL,
+  threshR2 = NULL,
   biallelicsnps = TRUE
 )
 }
 \arguments{
 \item{vcffile}{A variant call file (vcf) path. This VCF will be converted to an object of class \code{vcfR}.}
+
+\item{threshDist}{Genetic distance to filter at.}
+
+\item{threshR2}{Genetic autocorrelation to filter at}
 }
 \description{
 Filtering an object of class \code{vcfR} for linkage disequilibrium via genetic autocorrelation.
