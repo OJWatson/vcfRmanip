@@ -369,18 +369,31 @@ gtmat012 <- function(vcfRobj){
   # -----------------------------------------------------
   # determine ploidy to determine genotype numeric placeholder
   #------------------------------------------------------
-  if(stringr::str_detect(vcfR::extract.gt(vcfRobj)[1,2], "\\|")){ # grab first site
+
+  # extract gt matrix
+  gt <- vcfR::extract.gt(vcfRobj)
+
+  # find first position that is not NA
+  pos <- which.max(!is.na(gt))
+
+  if(stringr::str_detect(gt[pos], "\\|")){ # grab first site
     stop("This tool does not support phased vcfs")
-  } else if(stringr::str_detect(vcfR::extract.gt(vcfRobj)[1,2], "\\/")) {
-    if(length( stringr::str_split(vcfR::extract.gt(vcfRobj)[1,2], "\\/", simplify = T)) > 2){
-      stop("You have a ploidy that is less than 1 or greater than 3, which cannot be accomodated by this tool")
+  } else if(stringr::str_detect(gt[pos], "\\/")) {
+    if(length( stringr::str_split(gt[pos], "\\/", simplify = T)) > 2){
+      stop(paste0("You have a ploidy that is less than 1 or greater than 3, ",
+                  "which cannot be accomodated by this tool"))
     } else{
-      gtmatrix <- vcfR::extract.gt(vcfRobj, element='GT', as.numeric=F) # numeric as T doesn't parse 0/1 correctly
+
+      # numeric as T doesn't parse 0/1 correctly
+      gtmatrix <- vcfR::extract.gt(vcfRobj, element='GT', as.numeric=F)
       gtmatrix[gtmatrix == "0/0"] <- 0
       gtmatrix[gtmatrix == "0/1"] <- 1
       gtmatrix[gtmatrix == "1/1"] <- 2
       gtmatrix[is.na(gtmatrix)] <- NA
-      gtmatrix <- apply(gtmatrix, 2, function(x){as.numeric(x)}) # need to convert from char (--dependent on case of "/") to numeric
+
+      # need to convert from char (--dependent on case of "/") to numeric
+      gtmatrix <- apply(gtmatrix, 2, function(x){as.numeric(x)})
+
     }
   } else {
 
